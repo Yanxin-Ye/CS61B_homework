@@ -12,10 +12,19 @@ package sList;
  */
 
 class SListNode {
-	SListNode prev;	
-	Object item;
-	SListNode next;
+  Object item;
+  SListNode next;
 
+
+  /**
+   *  SListNode() (with two parameters) constructs a list node referencing the
+   *  item "obj", whose next list node is to be "next".
+   */
+
+  SListNode(Object obj, SListNode next) {
+    item = obj;
+    this.next = next;
+  }
 
   /**
    *  SListNode() (with one parameter) constructs a list node referencing the
@@ -23,21 +32,6 @@ class SListNode {
    */
 
   SListNode(Object obj) {
-	prev=null;
-    item = obj;
-    next = null;
+    this(obj, null);
   }
-
-  /**
-   *  SListNode() (with two parameters) constructs a list node referencing the
-   *  item "obj", whose next list node is to be "next".
-   */
-
-  SListNode(SListNode prev,Object obj, SListNode next) {
-	 this.prev=prev;//
-    item = obj;
-    this.next = next;
-
-  }
-
 }
