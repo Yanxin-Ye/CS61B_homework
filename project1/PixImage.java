@@ -30,6 +30,9 @@ public class PixImage {
 	private int height;
 	private Pixel [][] image; // !!!!
 	
+	private int CX[] = {-1,0,1};
+	private int CY[] = {-1,0,1};
+	
 
   /**
    * PixImage() constructs an empty PixImage with a specified width and height.
@@ -42,9 +45,9 @@ public class PixImage {
     // Your solution here.
 	  this.width=width;
 	  this.height=height;
-	  this.image = new Pixel[width+1][height+1];//多加了一圈
-	  for (int i=0; i<width+1;i++) {
-		  for (int j=0; j<height+1;j++) {
+	  this.image = new Pixel[width][height];//多加了一圈
+	  for (int i=0; i<width;i++) {
+		  for (int j=0; j<height;j++) {
 			  image[i][j] = new Pixel();
 		  }
 	  } 
@@ -121,6 +124,7 @@ public class PixImage {
    * @param green the new green intensity for the pixel at coordinate (x, y).
    * @param blue the new blue intensity for the pixel at coordinate (x, y).
    */
+  
   public void setPixel(int x, int y, short red, short green, short blue) {
     // Your solution here.
 	  if (red>=0 && red<=255&&green>=0&&green<=255&&blue>=0 &&blue<=255) {
@@ -183,43 +187,88 @@ public class PixImage {
    * @param numIterations the number of iterations of box blurring.
    * @return a blurred version of "this" PixImage.
    */
+  private PixImage copyImageTo(PixImage newpic) {	  
+	  for (int i=0; i<this.width;i++) {
+			for (int j=0;j<this.height;j++) {
+				newpic.setPixel(i,j,this.getRed(i, j),this.getGreen(i, j),this.getBlue(i, j));
+			}
+	  }
+	  return newpic;
+  }
+    
+  private short blurRed(int x, int y) {
+	  short redsum = 0;
+	  int num=0;
+	  for (int i=0; i<3;i++) {
+		  for (int j=0;j<3;j++) {
+			  if (x+CX[i]>=0 && x+CX[i]<this.width && y+CY[j]>=0 && y+CY[j]< this.height) {
+				  redsum+= this.getRed((x+CX[i]), (y+CY[j]));
+				 // greensum+= this.getGreen(x+CX[i], y+CY[i]);
+				  //bluesum+=this.getBlue(x+CX[i], y+CY[i]);				  
+//				  System.out.println("[ "+(x+CX[i])+","+(y+CY[j])+"] is :"+this.getRed(x+CX[i], y+CY[i])+", redsum is :"+ redsum+", num is"+ num);
+				  num++;
+			  }
+		  }
+	  }
+	 // System.out.println(redsum+","+ num);
+	  return (short)(redsum/num);
+  }
+  
+  private short blurGreen(int x, int y) {
+	  int greensum=0;
+	  int num=0;
+	  for (int i=0; i<3;i++) {
+		  for (int j=0;j<3;j++) {
+			  if (x+CX[i]>=0 && x+CX[i]<this.width && y+CY[j]>=0 && y+CY[j]< this.height) {
+				  greensum+= this.getGreen((x+CX[i]), (y+CY[j]));
+				  num++;
+			  }
+		  }
+	  }
+	 // System.out.println(redsum+","+ num);
+	  return (short)(greensum/num);
+  }
+  
+  private short blurBlue(int x, int y) {
+	  int bluesum=0;
+	  int num=0;
+	  for (int i=0; i<3;i++) {
+		  for (int j=0;j<3;j++) {
+			  if (x+CX[i]>=0 && x+CX[i]<this.width && y+CY[j]>=0 && y+CY[j]< this.height) {
+				  bluesum+= this.getBlue((x+CX[i]), (y+CY[j]));
+				  num++;
+			  }
+		  }
+	  }
+	  return (short)(bluesum/num);
+  }
+	  
+  
+  public PixImage oneBlur() {  
+		PixImage blur = new PixImage(this.width, this.height);	//create a copy of this image and name it "blur"
+		this.copyImageTo(blur);//copy the old image to blur
+		for (int i=0; i<this.width; i++) {
+			for (int j=0;j<this.height;j++) {
+				blur.setPixel(i, j, this.blurRed(i, j), this.blurGreen(i, j), this.blurBlue(i, j));
+		}
+	}
+		return blur;
+  }
+  
+  
   public PixImage boxBlur(int numIterations) {
     // Replace the following line with your solution.
 	if (numIterations<=0) {
 		return this;
 	}
-	//create a copy of this image and name it "blur"
-	PixImage blur = new PixImage(this.width, this.height);
-	for (int i=0; i<this.width;i++) {
-		for (int j=0;j<this.height;j++) {
-			blur.setPixel(i,j,this.getRed(i, j),this.getGreen(i, j),this.getBlue(i, j));
-		}
+	
+	int n=numIterations;
+	PixImage x=this;
+	while(n>0) {
+		x = x.oneBlur();
+		n--;
 	}
-	
-	//先把中间的模糊了
-	for (int i=1; i<this.width-1;i++) {
-		for (int j=1;j<this.height-1;j++) {
-			
-			short red =(short)(( this.getRed(i-1,j-1)+this.getRed(i-1, j)+this.getRed(i-1, j+1)
-					+this.getRed(i, j-1)+this.getRed(i, j)+this.getRed(i, j+1)
-					+this.getRed(i+1, j-1)+this.getRed(i+1, j)+this.getRed(i+1, j+1)
-					)/9);
-			short green =(short)(( this.getGreen(i-1,j-1)+this.getGreen(i-1, j)+this.getGreen(i-1, j+1)
-						+this.getGreen(i, j-1)+this.getGreen(i, j)+this.getGreen(i, j+1)
-						+this.getGreen(i+1, j-1)+this.getGreen(i+1, j)+this.getGreen(i+1, j+1)
-						)/9);
-			short blue=(short)(( this.getBlue(i-1,j-1)+this.getBlue(i-1, j)+this.getBlue(i-1, j+1)
-						+this.getBlue(i, j-1)+this.getBlue(i, j)+this.getBlue(i, j+1)
-						+this.getBlue(i+1, j-1)+this.getBlue(i+1, j)+this.getBlue(i+1, j+1)
-						)/9);
-			
-			blur.setPixel(i, j, red, green, blue);
-
-		}
-	}
-	
-	return blur;
-	
+	return x;	
 }
 
 
@@ -363,11 +412,22 @@ public class PixImage {
 	           "Incorrect image width and height.");
 
 	    System.out.println("Testing blurring on a 3x3 image.");
+	    
+//	    System.out.println("ny:"+image1.boxBlur(1));
+//	    System.out.println("ny:"+array2PixImage(new int[][] { { 40, 108, 155 },
+//            { 81, 137, 187 },
+//            { 120, 164, 218 } }));
+	    
+	    
+	    
 	    doTest(image1.boxBlur(1).equals(
 	           array2PixImage(new int[][] { { 40, 108, 155 },
 	                                        { 81, 137, 187 },
 	                                        { 120, 164, 218 } })),
 	           "Incorrect box blur (1 rep):\n" + image1.boxBlur(1));
+	    
+	    
+	    
 	    doTest(image1.boxBlur(2).equals(
 	           array2PixImage(new int[][] { { 91, 118, 146 },
 	                                        { 108, 134, 161 },
