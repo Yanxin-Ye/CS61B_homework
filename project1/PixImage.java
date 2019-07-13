@@ -32,8 +32,18 @@ public class PixImage {
 	
 	private int CX[] = {-1,0,1};
 	private int CY[] = {-1,0,1};
-	
 
+	
+	private short [][] sobelx ={	 { 1, 2, 1 },
+							{ 0, 0, 0 },
+					        { -1, -2, -1 } };
+//	private short [][] sobelx ={	 {0, 1, 2, 1 ,0},
+//			{0, 0, 0, 0,0 },
+//	        { 0,-1, -2, -1,0 } };
+	public short [][] sobely ={	 { 1, 0, -1 },
+	        { 2, 0, -2 },
+	        { 1, 0, -1 } };
+	
   /**
    * PixImage() constructs an empty PixImage with a specified width and height.
    * Every pixel has red, green, and blue intensities of zero (solid black).
@@ -45,7 +55,7 @@ public class PixImage {
     // Your solution here.
 	  this.width=width;
 	  this.height=height;
-	  this.image = new Pixel[width][height];//å¤šåŠ äº†ä¸€åœˆ
+	  this.image = new Pixel[width][height];//¶à¼ÓÁËÒ»È¦
 	  for (int i=0; i<width;i++) {
 		  for (int j=0; j<height;j++) {
 			  image[i][j] = new Pixel();
@@ -133,6 +143,11 @@ public class PixImage {
 		  image[x][y].setBlue((short) blue);		  		  
 	  }
   }
+  
+  //(x,y)ÊÇµÚ¼¸¸öÏñËØ
+  public int getPixNumber(int x, int y) {
+	  return x+(this.width)*y;
+  }
 
   /**
    * toString() returns a String representation of this PixImage.
@@ -146,10 +161,10 @@ public class PixImage {
   public String toString() {
     // Replace the following line with your solution.
 	  String array="  ";
-	  for (int i=0; i<width;i++) {
+	  for (int i=0; i<height;i++) {
 		  String row = i+": [ ";		  
-		  for (int j=0; j<height;j++) {
-			  row += "("+image[i][j].getRed()+", "+image[i][j].getGreen()+", "+image[i][j].getBlue()+") ";			  
+		  for (int j=0; j<width;j++) {
+			  row += "("+image[j][i].getRed()+", "+image[j][i].getGreen()+", "+image[j][i].getBlue()+") ";			  
 		  }
 		  row+= "]\n  ";
 		  array+=row;
@@ -187,7 +202,11 @@ public class PixImage {
    * @param numIterations the number of iterations of box blurring.
    * @return a blurred version of "this" PixImage.
    */
-  private PixImage copyImageTo(PixImage newpic) {	  
+  private PixImage copyImageTo(PixImage newpic) {
+	  if (this.width != newpic.width || this.height!=newpic.height) {
+		  System.out.println("Error while copying pictures: size is different!");
+		  return this;
+	  }
 	  for (int i=0; i<this.width;i++) {
 			for (int j=0;j<this.height;j++) {
 				newpic.setPixel(i,j,this.getRed(i, j),this.getGreen(i, j),this.getBlue(i, j));
@@ -215,7 +234,7 @@ public class PixImage {
   }
   
   private short blurGreen(int x, int y) {
-	  int greensum=0;
+	  short greensum=0;
 	  int num=0;
 	  for (int i=0; i<3;i++) {
 		  for (int j=0;j<3;j++) {
@@ -230,7 +249,7 @@ public class PixImage {
   }
   
   private short blurBlue(int x, int y) {
-	  int bluesum=0;
+	  short bluesum=0;
 	  int num=0;
 	  for (int i=0; i<3;i++) {
 		  for (int j=0;j<3;j++) {
@@ -260,14 +279,14 @@ public class PixImage {
     // Replace the following line with your solution.
 	if (numIterations<=0) {
 		return this;
-	}
-	
+	}	
 	int n=numIterations;
 	PixImage x=this;
 	while(n>0) {
 		x = x.oneBlur();
 		n--;
 	}
+  //  System.out.println("ny:"+ gx[0][0]+","+gx[1][0]+","+gx[2][0]);
 	return x;	
 }
 
@@ -297,6 +316,38 @@ public class PixImage {
     return intensity;
   }
 
+  private long energy(int x, int y) {
+	  short gxred = 0;
+	  short gyred = 0;
+	  short gxgreen = 0;
+	  short gygreen =0;
+	  short gxblue=0;
+	  short gyblue=0;
+	  for (int i=0; i<3;i++) {
+		  for (int j=0;j<3;j++) {
+			  if (x+CX[i]>=0 && x+CX[i]<this.width && y+CY[j]>=0 && y+CY[j]< this.height) {
+				  gxred+= this.getRed((x+CX[i]), (y+CY[j])) * sobelx[CX[i]+1][CY[j]+1];
+				  gyred+=this.getRed((x+CX[i]), (y+CY[j])) * sobely[CX[i]+1][CY[j]+1];
+				  gxgreen+= this.getGreen((x+CX[i]), (y+CY[j]))* sobelx[CX[i]+1][CY[j]+1];
+				  gygreen+=this.getGreen((x+CX[i]), (y+CY[j])) * sobely[CX[i]+1][CY[j]+1];
+				  gxblue+= this.getBlue((x+CX[i]), (y+CY[j]))* sobelx[CX[i]+1][CY[j]+1];
+				  gyblue+=this.getBlue((x+CX[i]), (y+CY[j]))* sobely[CX[i]+1][CY[j]+1];
+			  }
+		  }
+	  }
+	  long res = calEnergy(gxred, gyred, gxgreen, gygreen, gxblue, gyblue);	
+	  return res;
+	  
+  }
+  
+  private long calEnergy(long gxred, long gyred,long gxgreen,long gygreen,long gxblue, long gyblue) {
+	  long res = gxred*gxred + gyred * gyred
+			  +gxgreen*gxgreen +gygreen*gygreen
+			  +gxblue*gxblue +gyblue*gyblue;
+	  return res;
+  }
+  
+  
   /**
    * sobelEdges() applies the Sobel operator, identifying edges in "this"
    * image.  The Sobel operator computes a magnitude that represents how
@@ -314,9 +365,19 @@ public class PixImage {
    */
   public PixImage sobelEdges() {
     // Replace the following line with your solution.
-    return this;
     // Don't forget to use the method mag2gray() above to convert energies to
     // pixel intensities.
+	PixImage gray = new PixImage(this.width, this.height);	//create a copy of this image and name it "blur"
+	this.copyImageTo(gray);//copy the old image to blur
+	for (int i=0; i<this.width; i++) {
+		for (int j=0;j<this.height;j++) {
+			short intensity= mag2gray(energy(i,j));
+//			System.out.println("ny:[" +i+","+j+"]: "+ intensity+", energy:"+energy(i,j));
+			gray.setPixel(i, j, intensity, intensity, intensity);
+		}
+	}
+	return gray; 
+    
   }
 
 
@@ -401,33 +462,21 @@ public class PixImage {
 	    // Be forwarned that when you write arrays directly in Java as below,
 	    // each "row" of text is a column of your image--the numbers get
 	    // transposed.
-	  
 	    PixImage image1 = array2PixImage(new int[][] { { 0, 10, 240 },
 	                                                   { 30, 120, 250 },
 	                                                   { 80, 250, 255 } });
-	    System.out.println("Testing getWidth/getHeight on a 3x3 image.  " +
+	    System.out.println("P1.1: Testing getWidth/getHeight on a 3x3 image.  " +
 	                       "Input image:");
-	    System.out.print(image1);//ä¸ºä»€ä¹ˆè‡ªåŠ¨è°ƒç”¨äº†toSting()ï¼Ÿï¼Ÿï¼Ÿï¼Ÿ
+	    System.out.print(image1);
 	    doTest(image1.getWidth() == 3 && image1.getHeight() == 3,
 	           "Incorrect image width and height.");
 
-	    System.out.println("Testing blurring on a 3x3 image.");
-	    
-//	    System.out.println("ny:"+image1.boxBlur(1));
-//	    System.out.println("ny:"+array2PixImage(new int[][] { { 40, 108, 155 },
-//            { 81, 137, 187 },
-//            { 120, 164, 218 } }));
-	    
-	    
-	    
+	    System.out.println("P1.2: Testing blurring on a 3x3 image.");
 	    doTest(image1.boxBlur(1).equals(
 	           array2PixImage(new int[][] { { 40, 108, 155 },
 	                                        { 81, 137, 187 },
 	                                        { 120, 164, 218 } })),
 	           "Incorrect box blur (1 rep):\n" + image1.boxBlur(1));
-	    
-	    
-	    
 	    doTest(image1.boxBlur(2).equals(
 	           array2PixImage(new int[][] { { 91, 118, 146 },
 	                                        { 108, 134, 161 },
@@ -436,30 +485,45 @@ public class PixImage {
 	    doTest(image1.boxBlur(2).equals(image1.boxBlur(1).boxBlur(1)),
 	           "Incorrect box blur (1 rep + 1 rep):\n" +
 	           image1.boxBlur(2) + image1.boxBlur(1).boxBlur(1));
+	    
+	    
+	    
+	    
 
-	    System.out.println("Testing edge detection on a 3x3 image.");
+	    System.out.println("P1.3: Testing edge detection on a 3x3 image.");
 	    doTest(image1.sobelEdges().equals(
 	           array2PixImage(new int[][] { { 104, 189, 180 },
 	                                        { 160, 193, 157 },
 	                                        { 166, 178, 96 } })),
-	           "Incorrect Sobel:\n" + image1.sobelEdges());
+	           "P1.3: Incorrect Sobel:\n" + image1.sobelEdges());
+	    System.out.println("test energy:" +mag2gray(2306400));
 
 
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
 	    PixImage image2 = array2PixImage(new int[][] { { 0, 100, 100 },
 	                                                   { 0, 0, 100 } });
-	    System.out.println("Testing getWidth/getHeight on a 2x3 image.  " +
+	    System.out.println("P2.1: Testing getWidth/getHeight on a 2x3 image.  " +
 	                       "Input image:");
 	    System.out.print(image2);
 	    doTest(image2.getWidth() == 2 && image2.getHeight() == 3,
-	           "Incorrect image width and height.");
+	           "ny:Incorrect image width and height.");
 
-	    System.out.println("Testing blurring on a 2x3 image.");
+	    System.out.println("P2.2: Testing blurring on a 2x3 image.");
 	    doTest(image2.boxBlur(1).equals(
 	           array2PixImage(new int[][] { { 25, 50, 75 },
 	                                        { 25, 50, 75 } })),
 	           "Incorrect box blur (1 rep):\n" + image2.boxBlur(1));
 
-	    System.out.println("Testing edge detection on a 2x3 image.");
+	    System.out.println("P2.3: Testing edge detection on a 2x3 image.");
 	    doTest(image2.sobelEdges().equals(
 	           array2PixImage(new int[][] { { 122, 143, 74 },
 	                                        { 74, 143, 122 } })),
