@@ -19,14 +19,14 @@ public abstract class Nuke2 {
 	
 
 	public static void main(String[] args) throws Exception {
-		//读取键盘的输入的string
+		//璇诲彇閿洏鐨勮緭鍏ョ殑string
 		BufferedReader keyboard;
 		String inputword;
 		keyboard=new BufferedReader(new InputStreamReader(System.in));
 		System.out.print("Please enter the word: ");
 		System.out.flush();
 		inputword= keyboard.readLine();
-		//把string的第二个字母去掉
+		//鎶妔tring鐨勭浜屼釜瀛楁瘝鍘绘帀
 		String res=omit(inputword);
 		
 		//System.out.println(inputword);
