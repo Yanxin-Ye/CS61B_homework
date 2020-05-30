@@ -45,7 +45,7 @@ class Fraction {
 //    numberOfFractions++;
 //    numerator = 0;
 //    denominator = 1;
-	  this(0,1);//¸Ä
+	  this(0,1);//æ”¹
   }
 
   /** Copies the Fraction "original".
@@ -56,12 +56,12 @@ class Fraction {
   public int getDenominator() {
 	  return denominator;
   }
-//	¼ÓÉÏÁ½¸öº¯Êý
+//	åŠ ä¸Šä¸¤ä¸ªå‡½æ•°
   public Fraction(Fraction original) {
 //	  numberOfFractions++;
 //    numerator = 0;
 //    denominator = 1;
-	  this(original.getNumerator(),original.getDenominator());//¸Ä
+	  this(original.getNumerator(),original.getDenominator());//æ”¹
   }
 
   /** Converts this Fraction to a string format:  "numerator/denominator."
@@ -95,8 +95,8 @@ class Fraction {
       System.out.println("Fatal error:  Negative numerator.");
       System.exit(0);
     }
-    this.numerator = numerator;//¸Ä
-    numberOfFractions++;//¸Ä
+    this.numerator = numerator;//æ”¹
+    numberOfFractions++;//æ”¹
   }
 
   /** Returns the number of Fraction objects in existence.
@@ -117,7 +117,7 @@ class Fraction {
 	if(y==0)
 		return x;
 	else
-		return gcd(y, x%y);//Õ·×ªÏà³ý·¨
+		return gcd(y, x%y);//è¾—è½¬ç›¸é™¤æ³•
   }
 
   /** Put the Fraction class through some tests.
